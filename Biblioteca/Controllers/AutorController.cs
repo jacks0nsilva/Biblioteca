@@ -33,7 +33,7 @@ namespace Biblioteca.Controllers
         {
             var autor = await _repository.GetAutorByIdAsync(id);
             var autorRetorno = _mapper.Map<AutorDetalhesDto>(autor);
-            return autor != null ? Ok(autorRetorno) : BadRequest("Autor não encontrado");
+            return autor != null ? Ok(autorRetorno) : NotFound("Autor não encontrado");
         }
 
 
