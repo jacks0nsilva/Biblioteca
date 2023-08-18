@@ -27,10 +27,15 @@ namespace Biblioteca.Repository
             return categoria;
         }
 
-
         public async Task<Categoria> Adicionar(Categoria categoria)
         {
             await _context.Categorias.AddAsync(categoria);
+            return categoria;
+        }
+
+        public async Task<CategoriaLivro> Adicionar(CategoriaLivro categoria)
+        {
+            await _context.CategoriaLivros.AddAsync(categoria);
             return categoria;
         }
 
@@ -39,9 +44,21 @@ namespace Biblioteca.Repository
             _context.Categorias.Remove(categoria);
         }
 
+        public void Apagar(CategoriaLivro categoria)
+        {
+            _context.CategoriaLivros.Remove(categoria);
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<CategoriaLivro> GetCategoriaLivro(int categoriaId, int livroId)
+        {
+            var categoriaLivro = await _context.CategoriaLivros
+                 .Where(x => x.CategoriaId == categoriaId && x.LivroId == livroId).FirstOrDefaultAsync();
+            return categoriaLivro;
         }
     }
 }

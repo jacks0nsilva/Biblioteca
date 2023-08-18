@@ -20,6 +20,12 @@ namespace Biblioteca.Helper
                 opt=> opt.MapFrom(src=> src.Categorias.Select(x=> x.Nome).ToArray()));
             CreateMap<Livro, LivroCategoriaDto>()
                 .ForMember(dest=> dest.Autor, opt=> opt.MapFrom(src=> src.Autor.Nome));
+            CreateMap<Livro, LivroDetalhesDto>()
+                .ForMember(dest=> dest.Categorias, 
+                opt=> opt.MapFrom(src=> src.Categorias.Select(x=> x.Nome).ToArray()));
+            CreateMap<LivroAdicionarDto, Livro>();
+            CreateMap<LivroAtualizarDto, Livro>()
+                .ForAllMembers(opt=> opt.Condition((src, dest, srcMember)=> srcMember !=null));
 
 
 

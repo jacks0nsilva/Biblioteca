@@ -56,5 +56,30 @@ namespace Biblioteca.Controllers
             var status = await _repository.SaveChangesAsync();
             return status ? Ok("Categoria deletada") : BadRequest("Erro ao deletar categoria");
         }
+
+
+        [HttpPost("{categoriaId}/adicionar-categoria-livro/{livroId}")]
+        public async Task<IActionResult> Put(int categoriaId, int livroId)
+        {
+            if (categoriaId <= 0 || livroId <= 0) return BadRequest("Dados inválidos");
+            var categoriaLivro = await _repository.GetCategoriaLivro(categoriaId, livroId);
+            if (categoriaLivro != null) return Ok("Categoria já cadastrada");
+
+            var categoriaLivroAdicionar = new CategoriaLivro {CategoriaId = categoriaId, LivroId = livroId };
+            await _repository.Adicionar(categoriaLivroAdicionar);
+            var status = await _repository.SaveChangesAsync();
+            return status ? Ok() : BadRequest();
+        }
+
+        [HttpDelete("{categoriaId}/deletar-categoria-livro/{livroId}")]
+        public async Task<IActionResult> Delete(int categoriaId, int livroId)
+        {
+            if (categoriaId <= 0 || livroId <= 0) return BadRequest("Dados inválidos");
+            var categoriaLivro = await _repository.GetCategoriaLivro(categoriaId, livroId);
+            if (categoriaLivro == null) return NotFound("Categoria não cadastrada");
+            _repository.Apagar(categoriaLivro);
+            var status = await _repository.SaveChangesAsync();
+            return status ? Ok() : BadRequest();
+        }
     }
 }

@@ -12,12 +12,14 @@ namespace Biblioteca.Context
         public DbSet<Autor> Autor { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Livro> Livros { get; set; }
+        public DbSet<CategoriaLivro> CategoriaLivros { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new AutorMap());
             modelBuilder.ApplyConfiguration(new CategoriaMap());
             modelBuilder.ApplyConfiguration(new LivroMap());
+            modelBuilder.ApplyConfiguration(new CategoriaLivroMap());
             base.OnModelCreating(modelBuilder);
         }
 
