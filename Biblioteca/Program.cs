@@ -2,6 +2,7 @@ using Biblioteca.Context;
 using Biblioteca.Repository;
 using Biblioteca.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,25 @@ options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(x =>
+{
+    x.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Biblioteca",
+        Version = "v1",
+        Contact = new OpenApiContact
+        {
+            Name = "Jackson",
+            Email = "jacksonsilva_fsa@outlook.com",
+            Url = new Uri("https://github.com/jacks0nsilva")
+        }
+    });
+
+    var xmlFile = "Biblioteca.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    x.IncludeXmlComments(xmlPath);
+});
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
