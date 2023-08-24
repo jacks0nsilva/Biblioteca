@@ -28,7 +28,7 @@ namespace Biblioteca.Controllers
         /// Coleção de autores
         /// </returns>
         /// <response code="200">Sucesso ao retornar lista de autores</response>
-        /// <response code="404">Autores não encontrados na base de dados</response>
+        /// <response code="404">Autores não encontrados no banco de dados</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<AutorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -45,8 +45,8 @@ namespace Biblioteca.Controllers
         /// </summary>
         /// <param name="id">Identificador do autor</param>
         /// <returns>Dados do autor</returns>
-        /// <response code="200">Sucesso em encontrar o autor na base da dados</response>
-        /// <response code="404">Autor não encontrado na base de dados</response>
+        /// <response code="200">Sucesso em encontrar o autor no banco de dados</response>
+        /// <response code="404">Autor não encontrado no banco de dados</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AutorDetalhesDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -116,7 +116,7 @@ namespace Biblioteca.Controllers
         /// </summary>
         /// <param name="id">Identificador do autor</param>
         /// <returns>Resultado da requisição</returns>
-        /// <response code="200">Autor deltado com sucesso</response>
+        /// <response code="200">Autor deletado com sucesso</response>
         /// <response code="400">Erro ao deletar autor</response>
         /// <response code="404">Autor não encontrado</response>
         [HttpDelete("{id}")]
