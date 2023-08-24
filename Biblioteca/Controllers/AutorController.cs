@@ -30,7 +30,7 @@ namespace Biblioteca.Controllers
         /// <response code="200">Sucesso ao retornar lista de autores</response>
         /// <response code="404">Autores não encontrados na base de dados</response>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<AutorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get()
         {
@@ -48,7 +48,7 @@ namespace Biblioteca.Controllers
         /// <response code="200">Sucesso em encontrar o autor na base da dados</response>
         /// <response code="404">Autor não encontrado na base de dados</response>
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AutorDetalhesDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
