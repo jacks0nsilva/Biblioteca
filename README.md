@@ -46,7 +46,7 @@ API RESTfull que se comunica com o banco de dados MySQL com entidades de relacio
 
 - As entidades possuem camadas de DTOs e são mapeadas pela biblioteca AutoMapper
 - As entidades possuem rotas em CRUD
-  - POST, GET, GET {id}, PATCH, DELETE
+  - POST, GET, GET {id}, PUT, DELETE
 - A prática de API RESTfull estão em todos os controller
 - O projeto possui camadas de Repository aplicados no Controller
 
