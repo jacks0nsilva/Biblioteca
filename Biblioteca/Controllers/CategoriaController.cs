@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using Biblioteca.Helper;
 using Biblioteca.Models.DTO;
 using Biblioteca.Models.Entities;
 using Biblioteca.Repository.Interface;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biblioteca.Controllers
@@ -29,12 +29,14 @@ namespace Biblioteca.Controllers
         /// <response code="404">Categorias não encontradas no banco de dados</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<CategoriaDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get()
         {
             var categorias = await _repository.GetCategoriasAsync();
             var categoriasRetorno = _mapper.Map<IEnumerable<CategoriaDto>>(categorias);
-            return categoriasRetorno.Any() ? Ok(categoriasRetorno) : NotFound("Categorias não encontradas");
+            return categoriasRetorno.Any() 
+                ? Ok(categoriasRetorno) 
+                : NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Categorias não encontradas"));
         }
 
 
@@ -47,11 +49,11 @@ namespace Biblioteca.Controllers
         /// <response code="404">Autor não encontrado no banco de dados</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(CategoriaDetalhesDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
             var categoria = await _repository.GetCategoriaByIdAsync(id);
-            if (categoria == null) return NotFound("Categoria não encontrada");
+            if (categoria == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Categoria não encontrada"));
             var categoriaRetorno = _mapper.Map<CategoriaDetalhesDto>(categoria);
             return Ok(categoriaRetorno);
         }
@@ -67,13 +69,15 @@ namespace Biblioteca.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(CategoriaAdicionarDto),StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Post(CategoriaAdicionarDto categoria)
         {
-            if (categoria == null) return BadRequest("Dados inválidos");
             var categoriaAdiconar = _mapper.Map<Categoria>(categoria);
             await _repository.Adicionar(categoriaAdiconar);
             var status = await _repository.SaveChangesAsync();
-            return status ? Created("", categoria) : BadRequest("Erro ao adicionar categoria");
+            return status 
+                ? Created("", categoria) 
+                : Conflict(new ErrorDefault(StatusCodes.Status409Conflict, "Erro ao adicionar categoria"));
         }
 
 
@@ -89,14 +93,16 @@ namespace Biblioteca.Controllers
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault),StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var categoria = await _repository.GetCategoriaByIdAsync(id);
-            if (categoria == null) return NotFound("Categoria não encontrada");
+            if (categoria == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Categoria não encontrada"));
             _repository.Apagar(categoria);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Categoria deletada") : BadRequest("Erro ao deletar categoria");
+            return status 
+                ? Ok("Categoria deletada") 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Erro ao deletar categoria"));
         }
 
 
@@ -112,8 +118,8 @@ namespace Biblioteca.Controllers
         [HttpPost("{categoriaId}/adicionar-categoria-livro/{livroId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Put(int categoriaId, int livroId)
+        [ProducesResponseType(typeof(ErrorDefault),StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Post(int categoriaId, int livroId)
         {
             if (categoriaId <= 0 || livroId <= 0) return BadRequest("Dados inválidos");
             var categoriaLivro = await _repository.GetCategoriaLivro(categoriaId, livroId);
@@ -122,7 +128,9 @@ namespace Biblioteca.Controllers
             var categoriaLivroAdicionar = new CategoriaLivro {CategoriaId = categoriaId, LivroId = livroId };
             await _repository.Adicionar(categoriaLivroAdicionar);
             var status = await _repository.SaveChangesAsync();
-            return status ? Created("", categoriaLivroAdicionar) : BadRequest();
+            return status 
+                ? Created("", categoriaLivroAdicionar) 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Relação na cadastrada"));
         }
 
 
@@ -137,17 +145,19 @@ namespace Biblioteca.Controllers
         /// <response code="200">Relação deletada com sucesso</response>
         /// <response code="400">Erro ao deletar a relação</response>
         [HttpDelete("{categoriaId}/deletar-categoria-livro/{livroId}")]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(int categoriaId, int livroId)
         {
-            if (categoriaId <= 0 || livroId <= 0) return ValidationProblem("Identificadores inválidos");
+            if (categoriaId <= 0 || livroId <= 0) return BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Identificadores inválidos"));
             var categoriaLivro = await _repository.GetCategoriaLivro(categoriaId, livroId);
-            if (categoriaLivro == null) return NotFound("Categoria não cadastrada");
+            if (categoriaLivro == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound,"Categoria não cadastrada"));
             _repository.Apagar(categoriaLivro);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok() : BadRequest();
+            return status 
+                ? Ok() 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Erro ao deletar relação"));
         }
     }
 }

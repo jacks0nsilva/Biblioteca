@@ -74,19 +74,20 @@ namespace Biblioteca.Controllers
         /// </param>
         /// <returns>Resultado do cadastro</returns>
         /// <response code="200">Autor criado com sucesso</response>
-        /// <response code="400">Erro ao criar o autor</response>
+        /// <response code="400">Erro de validação ao criar autor</response>
+        /// <response code="409">Autor não criado devido a falha no banco de dados</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Post(AutorAdicionarDto autor)
         {
-            if(autor == null) return BadRequest("Dados inválidos");
             var autorAdicionar = _mapper.Map<Autor>(autor);
             await _repository.Adicionar(autorAdicionar);
             var status = await _repository.SaveChangesAsync();
             return status 
                 ? Ok("Autor cadastrado") 
-                : BadRequest("Autor não cadastrado no banco de dados");
+                : Conflict(new ErrorDefault(StatusCodes.Status409Conflict, "Autor não cadastrado no banco de dados"));
         }
 
 
@@ -98,15 +99,15 @@ namespace Biblioteca.Controllers
         /// <returns>Resultado da atualização</returns>
         /// <response code="200">Sucesso ao atualizar o autor</response>
         /// <response code="400">Erro ao atualizar o autor</response>
-        /// <response code="404">Autor não encontrado</response>
+        /// <response code="404">Autor não encontrado no banco de dados</response>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Put(int id, AutorAtualizarDto autor)
         {
             var autorBanco = await _repository.GetAutorByIdAsync(id);
-            if(autorBanco == null) return NotFound("Autor não encontrado");
+            if(autorBanco == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Autor não encontrado"));
             if(autor.DataNascimento == new DateTime())
             {
                 autor.DataNascimento = autorBanco.DataNascimento;
@@ -114,7 +115,9 @@ namespace Biblioteca.Controllers
             var autorAtualizado = _mapper.Map(autor, autorBanco);
             _repository.Atualizar(autorAtualizado);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Autor atualizado") : BadRequest("Autor não atualizado no banco de dados");
+            return status 
+                ? Ok("Autor atualizado") 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Autor não atualizado no banco de dados"));
         }
 
 
@@ -128,15 +131,17 @@ namespace Biblioteca.Controllers
         /// <response code="404">Autor não encontrado</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var autor = await _repository.GetAutorByIdAsync(id);
-            if (autor == null) return NotFound("Autor não encontrado");
+            if (autor == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Autor não encontrado"));
             _repository.Apagar(autor);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Autor deletado") : BadRequest("Erro ao delatar o autor");
+            return status 
+                ? Ok("Autor deletado") 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Erro ao delatar o autor"));
         }
 
     }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Biblioteca.Helper;
 using Biblioteca.Models.DTO;
 using Biblioteca.Models.Entities;
 using Biblioteca.Repository.Interface;
@@ -29,12 +30,14 @@ namespace Biblioteca.Controllers
         /// <response code="400">Erro ao retornar lista de livro </response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<LivroDetalhesDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Get()
         {
             var livros = await _repository.GetLivrosAsync();
             var livrosRetorno = _mapper.Map <IEnumerable<LivroDetalhesDto>>(livros);
-            return livros.Any() ? Ok(livrosRetorno) : BadRequest("Não há livros cadastrados");
+            return livros.Any() 
+                ? Ok(livrosRetorno) 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Não há livros cadastrados"));
         }
 
 
@@ -49,11 +52,11 @@ namespace Biblioteca.Controllers
         /// <response code="404">Erro em encontrar o livro </response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(LivroDetalhesDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
             var livro = await _repository.GetLivrosByIdAsync(id);
-            if (livro == null) return NotFound("Livro não encontrado");
+            if (livro == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Livro não encontrado"));
             var livroRetorno = _mapper.Map<LivroDetalhesDto>(livro);
             return Ok(livroRetorno);
         }
@@ -67,17 +70,20 @@ namespace Biblioteca.Controllers
         /// </param>
         /// <returns>Resultado do cadastro</returns>
         /// <response code="200">Sucesso em cadastrar o livro </response>
-        /// <response code="404">Erro em cadastrar o livro </response>
+        /// <response code="400">Erro de validação ao criar livro </response>
+        /// <response code="409">Livro não criado devido a falha no banco de dados</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Post(LivroAdicionarDto livro)
         {
-            if (livro == null) return BadRequest("Dados inválidos");
             var livroAdicionar = _mapper.Map<Livro>(livro);
             await _repository.Adicionar(livroAdicionar);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Livro adicionado") : BadRequest("Erro ao adicionar livro");
+            return status 
+                ? Ok("Livro adicionado") 
+                : Conflict(new ErrorDefault(StatusCodes.Status409Conflict, "Erro ao adicionar livro"));
         }
 
 
@@ -91,13 +97,13 @@ namespace Biblioteca.Controllers
         /// <response code="200">Sucesso em atualizar o livro </response>
         /// <response code="400">Erro em atualizar o livro </response>
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault),StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Put(int id, LivroAtualizarDto livro)
         {
             var livroBanco = await _repository.GetLivrosByIdAsync(id);
-            if (livroBanco == null) return NotFound("Livro não encontrado");
+            if (livroBanco == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Livro não encontrado"));
             if(livro.DataPublicacao == new DateTime())
             {
                 livro.DataPublicacao = livroBanco.DataPublicacao;
@@ -106,7 +112,9 @@ namespace Biblioteca.Controllers
             var livroAtulizar = _mapper.Map(livro, livroBanco);
             _repository.Atualizar(livroAtulizar);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Livro atualizado") : BadRequest("Erro ao atualizar livro");
+            return status 
+                ? Ok("Livro atualizado") 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Erro ao atualizar livro"));
         }
 
 
@@ -121,16 +129,18 @@ namespace Biblioteca.Controllers
         /// <response code="200">Sucesso em deletar o livro</response>
         /// <response code="400">Erro em deletar o livro</response>
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete(int id)
         {
             var livro = await _repository.GetLivrosByIdAsync(id);
-            if (livro == null) return NotFound("Livro não encontrado");
+            if (livro == null) return NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Livro não encontrado"));
             _repository.Apagar(livro);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Livro deletado") : BadRequest("Erro ao deletar livro");
+            return status 
+                ? Ok("Livro deletado") 
+                : BadRequest(new ErrorDefault(StatusCodes.Status400BadRequest, "Erro ao deletar livro"));
         }
 
     }
