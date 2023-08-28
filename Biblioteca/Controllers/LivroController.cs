@@ -2,7 +2,6 @@
 using Biblioteca.Models.DTO;
 using Biblioteca.Models.Entities;
 using Biblioteca.Repository.Interface;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biblioteca.Controllers
@@ -71,7 +70,7 @@ namespace Biblioteca.Controllers
         /// <response code="404">Erro em cadastrar o livro </response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Post(LivroAdicionarDto livro)
         {
             if (livro == null) return BadRequest("Dados inválidos");

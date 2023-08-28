@@ -66,7 +66,7 @@ namespace Biblioteca.Controllers
         /// <response code="400">Erro ao criar a categoria</response>
         [HttpPost]
         [ProducesResponseType(typeof(CategoriaAdicionarDto),StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Post(CategoriaAdicionarDto categoria)
         {
             if (categoria == null) return BadRequest("Dados inválidos");

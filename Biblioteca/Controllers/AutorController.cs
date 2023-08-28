@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using Biblioteca.Helper;
 using Biblioteca.Models.DTO;
 using Biblioteca.Models.Entities;
 using Biblioteca.Repository.Interface;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace Biblioteca.Controllers
 {
@@ -31,12 +32,14 @@ namespace Biblioteca.Controllers
         /// <response code="404">Autores não encontrados no banco de dados</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<AutorDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get()
         {
             var autores = await _repository.GetAutoresAsync();
             var autoresRetorno = _mapper.Map<IEnumerable<AutorDto>>(autores);
-            return autoresRetorno.Any() ? Ok(autoresRetorno) : NotFound("Autores não encontrados");
+            return autoresRetorno.Any() 
+                ? Ok(autoresRetorno) 
+                : NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Autores não encontrados"));
         }
 
 
@@ -49,12 +52,14 @@ namespace Biblioteca.Controllers
         /// <response code="404">Autor não encontrado no banco de dados</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AutorDetalhesDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDefault), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
             var autor = await _repository.GetAutorByIdAsync(id);
             var autorRetorno = _mapper.Map<AutorDetalhesDto>(autor);
-            return autor != null ? Ok(autorRetorno) : NotFound("Autor não encontrado");
+            return autor != null 
+                ? Ok(autorRetorno) 
+                : NotFound(new ErrorDefault(StatusCodes.Status404NotFound, "Autor não encontrado"));
         }
 
 
@@ -72,14 +77,16 @@ namespace Biblioteca.Controllers
         /// <response code="400">Erro ao criar o autor</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Post(AutorAdicionarDto autor)
         {
             if(autor == null) return BadRequest("Dados inválidos");
             var autorAdicionar = _mapper.Map<Autor>(autor);
             await _repository.Adicionar(autorAdicionar);
             var status = await _repository.SaveChangesAsync();
-            return status ? Ok("Autor cadastrado") : BadRequest("Autor não cadastrado no banco de dados");
+            return status 
+                ? Ok("Autor cadastrado") 
+                : BadRequest("Autor não cadastrado no banco de dados");
         }
 
 
